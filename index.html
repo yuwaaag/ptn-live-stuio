@@ -2,33 +2,38 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>PTN NEWS - VIDEO FIX EDITION</title>
+    <title>PTN NEWS - CLOUDINARY LIVE</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@700;900&display=swap');
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Noto Sans Devanagari', sans-serif; }
+        
+        /* वीडियो प्लेयर */
         #reporter-video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; background: #000; }
+
+        /* ओवरले डिज़ाइन */
         .ui-overlay { position: relative; width: 100%; height: 100%; z-index: 10; display: flex; flex-direction: column; justify-content: flex-end; pointer-events: none; }
-        .breaking-tag { position: absolute; top: 40px; left: 0; background: #cc0000; color: #fff; padding: 15px 40px; font-size: 45px; font-weight: 900; border-right: 10px solid #ffcc00; }
-        .rep-label { position: absolute; bottom: 260px; left: 30px; background: rgba(0,0,0,0.8); color: #ffcc00; padding: 10px 30px; font-size: 28px; border-left: 8px solid #ffcc00; }
-        .headline-box { width: 100%; background: linear-gradient(to top, #000 90%, transparent); padding: 50px 20px; border-top: 10px solid #ffcc00; box-sizing: border-box; }
-        .headline-text { color: #fff; font-size: 52px; text-align: center; margin: 0; font-weight: 700; line-height: 1.3; text-shadow: 3px 3px 10px #000; }
-        #start-btn { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; color: #ffcc00; text-align: center; }
+        .breaking-tag { position: absolute; top: 40px; left: 0; background: #cc0000; color: #fff; padding: 15px 40px; font-size: 45px; font-weight: 900; border-right: 10px solid #ffcc00; box-shadow: 10px 10px 30px rgba(0,0,0,0.5); }
+        .rep-label { position: absolute; bottom: 270px; left: 30px; background: rgba(0,0,0,0.85); color: #ffcc00; padding: 12px 35px; font-size: 30px; border-left: 8px solid #ffcc00; border-radius: 5px; }
+        .headline-box { width: 100%; background: linear-gradient(to top, rgba(0,0,0,1) 85%, transparent); padding: 60px 20px; border-top: 10px solid #ffcc00; box-sizing: border-box; }
+        .headline-text { color: #fff; font-size: 55px; text-align: center; margin: 0; font-weight: 900; line-height: 1.3; text-shadow: 4px 4px 15px #000; }
+
+        #start-btn { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #222, #000); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; color: #ffcc00; }
     </style>
 </head>
 <body>
 
     <div id="start-btn" onclick="startEngine()">
-        <h1 style="font-size: 60px; margin: 0;">PTN LIVE STUDIO</h1>
-        <p style="color: white; font-size: 24px;">[ NEWS ENGINE SHURU KAREIN ]</p>
+        <h1 style="font-size: 70px; margin: 0; letter-spacing: 5px;">PTN NEWS</h1>
+        <p style="color: white; font-size: 24px; margin-top: 20px; border: 2px solid #ffcc00; padding: 10px 30px;">[ ब्रॉडकास्ट शुरू करने के लिए क्लिक करें ]</p>
     </div>
 
-    <video id="reporter-video" muted playsinline></video>
+    <video id="reporter-video" muted playsinline preload="auto"></video>
 
     <div class="ui-overlay">
         <div class="breaking-tag">LIVE REPORTING</div>
-        <div id="rep-info" class="rep-label">Connecting...</div>
+        <div id="rep-info" class="rep-label">कनेक्टिंग...</div>
         <div class="headline-box">
-            <p id="news-text" class="headline-text">Wait, loading video...</p>
+            <p id="news-text" class="headline-text">खबरों की प्रतीक्षा में...</p>
         </div>
     </div>
 
@@ -37,54 +42,53 @@
         let currentIndex = 0;
         const videoPlayer = document.getElementById('reporter-video');
         
-        // 🛑 Yahan apna URL paste karein
+        // 🛑 अपना WEB APP URL यहाँ पेस्ट करें
         const apiURL = "https://script.google.com/macros/s/AKfycbxdC0A-qyh_zT4zIcXWsWoCpNfkooytB-B0z3UXTWyWDqseUVHZOd6iQIweMx4vI0GfZA/exec"; 
-
-        // Google Drive link converter function
-        function getDirectVideoLink(url) {
-            if (url.includes('drive.google.com')) {
-                let fileId = "";
-                if (url.includes('/d/')) {
-                    fileId = url.split('/d/')[1].split('/')[0];
-                } else if (url.includes('id=')) {
-                    fileId = url.split('id=')[1].split('&')[0];
-                }
-                // Ye link video player ko direct stream deta hai
-                return `https://www.driveplayer.com/render?id=${fileId}`;
-            }
-            return url;
-        }
 
         async function fetchNews() {
             try {
                 const response = await fetch(apiURL);
                 const data = await response.json();
-                if (data && data.length > 0) { newsQueue = data; }
+                if (data && data.length > 0) {
+                    newsQueue = data;
+                }
             } catch (e) { console.error("Fetch Error"); }
         }
 
         function playNext() {
-            if (newsQueue.length === 0) { fetchAndStart(); return; }
+            if (newsQueue.length === 0) {
+                fetchAndStart();
+                return;
+            }
 
             const current = newsQueue[currentIndex];
             document.getElementById('news-text').innerText = current.text;
-            document.getElementById('rep-info').innerText = "Reporter: " + current.reporter;
+            document.getElementById('rep-info').innerText = "रिपोर्टर: " + current.reporter;
 
-            // Converter use karein
-            const directLink = getDirectVideoLink(current.videoUrl);
-            videoPlayer.src = directLink;
-            videoPlayer.play().catch(e => console.log("Play failed, waiting for user click"));
+            // Cloudinary वीडियो को लोड करना
+            videoPlayer.src = current.videoUrl;
+            videoPlayer.load();
+            
+            // वीडियो प्ले होने पर ही AI बोलना शुरू करे
+            videoPlayer.play().then(() => {
+                startSpeech(current.text);
+            }).catch(e => {
+                console.log("Play failed, skipping to speech...");
+                startSpeech(current.text);
+            });
+        }
 
+        function startSpeech(text) {
             window.speechSynthesis.cancel();
-            const speech = new SpeechSynthesisUtterance("Badi khabar... " + current.text);
+            const speech = new SpeechSynthesisUtterance("बड़ी खबर... " + text);
             speech.lang = 'hi-IN';
-            speech.rate = 0.9;
+            speech.rate = 0.85;
 
             speech.onend = () => {
                 setTimeout(() => {
                     currentIndex = (currentIndex + 1) % newsQueue.length;
                     fetchNews().then(playNext);
-                }, 4000);
+                }, 4000); // 4 सेकंड का ब्रेक खबर के बाद
             };
             window.speechSynthesis.speak(speech);
         }
@@ -93,7 +97,7 @@
             await fetchNews();
             if (newsQueue.length > 0) playNext();
             else {
-                document.getElementById('news-text').innerText = "No approved news found!";
+                document.getElementById('news-text').innerText = "कोई अप्रूव्ड खबर नहीं मिली!";
                 setTimeout(fetchAndStart, 5000);
             }
         }
