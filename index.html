@@ -2,109 +2,138 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>PTN NEWS - CLOUDINARY LIVE</title>
+    <title>PTN NEWS - LOGICAL TICKER PRO</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@700;900&display=swap');
+        
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Noto Sans Devanagari', sans-serif; }
         
-        /* वीडियो प्लेयर */
-        #reporter-video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; background: #000; }
+        #reporter-video { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            object-fit: cover; z-index: 1; filter: brightness(1.1);
+        }
 
-        /* ओवरले डिज़ाइन */
-        .ui-overlay { position: relative; width: 100%; height: 100%; z-index: 10; display: flex; flex-direction: column; justify-content: flex-end; pointer-events: none; }
-        .breaking-tag { position: absolute; top: 40px; left: 0; background: #cc0000; color: #fff; padding: 15px 40px; font-size: 45px; font-weight: 900; border-right: 10px solid #ffcc00; box-shadow: 10px 10px 30px rgba(0,0,0,0.5); }
-        .rep-label { position: absolute; bottom: 270px; left: 30px; background: rgba(0,0,0,0.85); color: #ffcc00; padding: 12px 35px; font-size: 30px; border-left: 8px solid #ffcc00; border-radius: 5px; }
-        .headline-box { width: 100%; background: linear-gradient(to top, rgba(0,0,0,1) 85%, transparent); padding: 60px 20px; border-top: 10px solid #ffcc00; box-sizing: border-box; }
-        .headline-text { color: #fff; font-size: 55px; text-align: center; margin: 0; font-weight: 900; line-height: 1.3; text-shadow: 4px 4px 15px #000; }
+        .ui-overlay { position: relative; width: 100%; height: 100%; z-index: 10; display: flex; flex-direction: column; justify-content: flex-end; }
+        
+        /* ब्रेकिंग न्यूज़ टैग */
+        .breaking-tag { 
+            position: absolute; top: 50px; left: 0; 
+            background: linear-gradient(90deg, #cc0000, #ff0000); 
+            color: #fff; padding: 15px 40px; font-size: 40px; font-weight: 900; 
+            border-right: 10px solid #ffcc00; z-index: 20;
+        }
 
-        #start-btn { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #222, #000); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; color: #ffcc00; }
+        /* रिपोर्टर का नाम - अब यह थोड़ा ऊपर रहेगा */
+        .rep-label { 
+            position: absolute; bottom: 160px; left: 20px; 
+            background: rgba(0,0,0,0.85); color: #ffcc00; 
+            padding: 8px 25px; font-size: 26px; border-left: 6px solid #ffcc00;
+        }
+
+        /* न्यूज़ बॉक्स - अब यह सीमित ऊंचाई (Height) का होगा */
+        .headline-box { 
+            width: 100%; height: 150px;
+            background: rgba(0,0,0,0.9); 
+            border-top: 6px solid #ffcc00; 
+            display: flex; align-items: center; overflow: hidden;
+            position: absolute; bottom: 0;
+        }
+
+        /* टिकर लॉजिक: खबर अपने आप चलने लगेगी */
+        .ticker-wrap {
+            width: 100%; white-space: nowrap; overflow: hidden;
+        }
+
+        .headline-text { 
+            display: inline-block; padding-left: 100%;
+            color: #fff; font-size: 48px; font-weight: 800; 
+            animation: ticker 25s linear infinite; /* खबर की लंबाई के हिसाब से समय बदल सकते हैं */
+        }
+
+        @keyframes ticker {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-100%, 0, 0); }
+        }
+
+        #start-screen { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: #000; z-index: 9999; display: flex; justify-content: center; align-items: center; cursor: pointer; color: #ffcc00; 
+        }
     </style>
 </head>
 <body>
 
-    <div id="start-btn" onclick="startEngine()">
-        <h1 style="font-size: 70px; margin: 0; letter-spacing: 5px;">PTN NEWS</h1>
-        <p style="color: white; font-size: 24px; margin-top: 20px; border: 2px solid #ffcc00; padding: 10px 30px;">[ ब्रॉडकास्ट शुरू करने के लिए क्लिक करें ]</p>
+    <div id="start-screen" onclick="launchStudio()">
+        <h1>PTN NEWS ENGINE [ CLICK TO START ]</h1>
     </div>
 
-    <video id="reporter-video" muted playsinline preload="auto"></video>
+    <video id="reporter-video" muted playsinline></video>
 
     <div class="ui-overlay">
-        <div class="breaking-tag">LIVE REPORTING</div>
-        <div id="rep-info" class="rep-label">कनेक्टिंग...</div>
+        <div class="breaking-tag">BREAKING NEWS</div>
+        <div id="reporter-tag" class="rep-label">कनेक्टिंग...</div>
         <div class="headline-box">
-            <p id="news-text" class="headline-text">खबरों की प्रतीक्षा में...</p>
+            <div class="ticker-wrap">
+                <p id="headline-display" class="headline-text">ताज़ा न्यूज़ अपडेट्स...</p>
+            </div>
         </div>
     </div>
 
     <script>
-        let newsQueue = [];
-        let currentIndex = 0;
-        const videoPlayer = document.getElementById('reporter-video');
+        let newsData = [];
+        let index = 0;
+        const video = document.getElementById('reporter-video');
         
-        // 🛑 अपना WEB APP URL यहाँ पेस्ट करें
         const apiURL = "https://script.google.com/macros/s/AKfycbxdC0A-qyh_zT4zIcXWsWoCpNfkooytB-B0z3UXTWyWDqseUVHZOd6iQIweMx4vI0GfZA/exec"; 
 
-        async function fetchNews() {
+        async function loadNews() {
             try {
-                const response = await fetch(apiURL);
-                const data = await response.json();
-                if (data && data.length > 0) {
-                    newsQueue = data;
-                }
-            } catch (e) { console.error("Fetch Error"); }
+                const res = await fetch(apiURL);
+                newsData = await res.json();
+            } catch (e) { console.error("Error"); }
         }
 
-        function playNext() {
-            if (newsQueue.length === 0) {
-                fetchAndStart();
-                return;
-            }
+        function playBulletin() {
+            if (newsData.length === 0) { setTimeout(startProcess, 3000); return; }
 
-            const current = newsQueue[currentIndex];
-            document.getElementById('news-text').innerText = current.text;
-            document.getElementById('rep-info').innerText = "रिपोर्टर: " + current.reporter;
-
-            // Cloudinary वीडियो को लोड करना
-            videoPlayer.src = current.videoUrl;
-            videoPlayer.load();
+            const item = newsData[index];
+            const headlineEl = document.getElementById('headline-display');
             
-            // वीडियो प्ले होने पर ही AI बोलना शुरू करे
-            videoPlayer.play().then(() => {
-                startSpeech(current.text);
-            }).catch(e => {
-                console.log("Play failed, skipping to speech...");
-                startSpeech(current.text);
-            });
+            headlineEl.innerText = item.text;
+            document.getElementById('reporter-tag').innerText = "रिपोर्टर: " + item.reporter;
+
+            // टिकर की स्पीड खबर की लंबाई के हिसाब से सेट करें
+            const duration = Math.max(15, item.text.length / 5); 
+            headlineEl.style.animationDuration = duration + "s";
+
+            video.src = item.videoUrl;
+            video.load();
+            video.play().then(() => speakNews(item.text));
         }
 
-        function startSpeech(text) {
+        function speakNews(text) {
             window.speechSynthesis.cancel();
-            const speech = new SpeechSynthesisUtterance("बड़ी खबर... " + text);
+            const speech = new SpeechSynthesisUtterance("बड़ी खबर। " + text);
             speech.lang = 'hi-IN';
             speech.rate = 0.85;
 
             speech.onend = () => {
                 setTimeout(() => {
-                    currentIndex = (currentIndex + 1) % newsQueue.length;
-                    fetchNews().then(playNext);
-                }, 4000); // 4 सेकंड का ब्रेक खबर के बाद
+                    index = (index + 1) % newsData.length;
+                    loadNews().then(playBulletin);
+                }, 3000);
             };
             window.speechSynthesis.speak(speech);
         }
 
-        async function fetchAndStart() {
-            await fetchNews();
-            if (newsQueue.length > 0) playNext();
-            else {
-                document.getElementById('news-text').innerText = "कोई अप्रूव्ड खबर नहीं मिली!";
-                setTimeout(fetchAndStart, 5000);
-            }
+        async function startProcess() {
+            await loadNews();
+            if (newsData.length > 0) playBulletin();
         }
 
-        function startEngine() {
-            document.getElementById('start-btn').style.display = 'none';
-            fetchAndStart();
+        function launchStudio() {
+            document.getElementById('start-screen').style.display = 'none';
+            startProcess();
         }
     </script>
 </body>
